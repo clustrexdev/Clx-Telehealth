@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Athena Sidepanel</title>
+        <link rel="stylesheet" href="styles.css">
+        <script src="opentok.min.js"></script>
+    </head>
+    <body>
+        <div id="container">
+            <div>
+                <button id="recordPatientDataButton">Record Patient Data</button>
+                <p>patientId: <span id="patientId">-</span></p>
+                <p>firstName: <span id="firstName">-</span></p>
+                <p>lastName: <span id="lastName">-</span></p>
+                <p>dob: <span id="dob">-</span></p>
+            </div>
+
+            <div>
+                <div id="start-screen" class="screen active">
+                    <button id="call-button" class="button">Call</button>
+                </div>
+            
+                <div id="call-screen" class="screen">
+                <div class="video-container">
+                    <div class="video-box" id="publisher"></div>
+                    <div class="video-box" id="subscriber">
+                    <div id="waiting-msg" class="status">Waiting for other user to join...</div>
+                    </div>
+                </div>
+                <button id="end-call" class="button">End Call</button>
+                </div>
+            </div>
+        </div>
+
+        <script type="module" src="sidepanel.js"></script>
+
+    </body>
+</html>
