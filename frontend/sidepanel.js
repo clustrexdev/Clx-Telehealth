@@ -9,10 +9,8 @@ document.getElementById("recordPatientDataButton").addEventListener("click", () 
 chrome.runtime.onMessage.addListener((message) => {
     if (message.type === "return_data") {
         patientId = message.data.patientId;
-        if (isValidPatientId(patientId)){
-            document.getElementById("patientId").innerText = patientId;
-        }
-        // document.getElementById("patientId").innerText = message.data.patientId;
+        // if (isValidPatientId(patientId)){}
+        document.getElementById("patientId").innerText = patientId;
         document.getElementById("firstName").innerText = message.data.firstName;
         document.getElementById("lastName").innerText = message.data.lastName;
         document.getElementById("dob").innerText = message.data.dob;
