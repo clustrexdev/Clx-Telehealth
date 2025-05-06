@@ -6,6 +6,8 @@
 .vscode/
 settings.json
 
+# Vonage Private Key
+private.key
 
 ### Python ###
 # Byte-compiled / optimized / DLL files

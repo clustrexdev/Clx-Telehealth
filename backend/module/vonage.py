@@ -23,12 +23,13 @@ def create_session():
         token_options = TokenOptions(session_id=sessionId, role='publisher')
         token = vonage_client.video.generate_client_token(token_options)
         token_str = token.decode('utf-8')
-        print(f"http://localhost:5501/backend/module/templates/index-final-copy.html?session={sessionId}&token={token_str}")
+        invite_link = f"http://localhost:5500/backend/module/templates/index-final-copy.html?session={sessionId}&token={token_str}"
 
         return jsonify({
             "apiKey": VONAGE_APPLICATION_ID,
             "sessionId": sessionId,
-            "token": token_str
+            "token": token_str,
+            "inviteLink": invite_link
         })
     except Exception as e:
         print("Error creating session:", e)

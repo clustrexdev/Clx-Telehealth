@@ -7,12 +7,19 @@
     </head>
     <body>
         <div id="container">
-            <div>
-                <button id="recordPatientDataButton">Record Patient Data</button>
-                <p>patientId: <span id="patientId">-</span></p>
-                <p>firstName: <span id="firstName">-</span></p>
-                <p>lastName: <span id="lastName">-</span></p>
-                <p>dob: <span id="dob">-</span></p>
+
+            <div id="inputFields" class="flex flex-direction-column">
+                <div class="flex flex-row">
+                    <div><label>Patient ID : </label><span id="patientId">-</span></div>
+                    <div><label>DOB : </label><span id="dob">-</span></div>
+                </div>
+                <div class="flex flex-row">
+                    <div><label>First Name : </label><span id="firstName">-</span></div>
+                    <div><label>Last Name : </label><span id="lastName">-</span></div>
+                </div>
+                <div class="flex flex-row">
+                    <button id="recordPatientDataButton">Record Patient Data</button>
+                </div>
             </div>
 
             <div>
@@ -21,14 +28,16 @@
                 </div>
             
                 <div id="call-screen" class="screen">
-                <div class="video-container">
-                    <div class="video-box" id="publisher"></div>
-                    <div class="video-box" id="subscriber">
-                    <div id="waiting-msg" class="status">Waiting for other user to join...</div>
+                    <div class="video-container">
+                        <div class="video-box" id="publisher"></div>
+                        <div class="video-box" id="subscriber">
+                        <div id="waiting-msg" class="status">Waiting for other user to join...</div>
+                        </div>
                     </div>
+                    <button id="invite-copy-button" class="button">Copy Invite Link</button>
+                    <button id="end-call" class="button">End Call</button>
                 </div>
-                <button id="end-call" class="button">End Call</button>
-                </div>
+
             </div>
         </div>
 

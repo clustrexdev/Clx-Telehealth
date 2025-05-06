@@ -1,5 +1,30 @@
+
+.flex{
+    display: flex;
+}
+
+.flex-direction-column {
+    flex-direction: column;
+}
+
+.flex-row{
+    padding: 10px;
+}
+
+.flex-row div{
+    width: 50%;
+}
+
+#inputFields{
+    padding: 5px;
+}
+
 #call-button {
     background-color: #00aaff;
+}
+
+#invite-copy-button{
+    background-color: green;
 }
 
 #end-call {
