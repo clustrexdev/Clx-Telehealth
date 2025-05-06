@@ -30,7 +30,7 @@ function isValidPatientId(patientId){
 // }
 
 
-let apiKey, sessionId, token, session, publisher;
+let apiKey, sessionId, token, session, publisher, inviteLink;
         
 const callBtn = document.getElementById('call-button');
 const endBtn = document.getElementById('end-call');
@@ -50,6 +50,12 @@ function showScreen(screenId) {
     document.getElementById(screenId).classList.add('active');
 }
 
+function copyInviteLink(){
+    navigator.clipboard.writeText(inviteLink)
+    .then(()=>alert('Link copied to clipboard!'))
+    .catch(() => alert('Failed to copy link.'));
+}
+
 async function startCall() {
     if(await checkin_requirements(apt_id)){
     // if(true){
@@ -58,6 +64,11 @@ async function startCall() {
             apiKey = data.apiKey;
             sessionId = data.sessionId;
             token = data.token;
+            inviteLink = data.inviteLink;
+
+            document.getElementById("invite-copy-button").addEventListener("click", () => {
+                copyInviteLink();
+            });
 
             session = OT.initSession(apiKey, sessionId);
 
