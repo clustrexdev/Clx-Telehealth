@@ -1,4 +1,10 @@
 
+// Allows users to open the side panel by clicking on the action toolbar icon
+chrome.sidePanel
+    .setPanelBehavior({ openPanelOnActionClick: true })
+    .catch((error) => console.error(error));
+
+
 chrome.runtime.onMessage.addListener((message) => {
     if (message.action === "scrapeData") {
         chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
@@ -6,10 +12,10 @@ chrome.runtime.onMessage.addListener((message) => {
             const tab = tabs[0];
 
             // To exclude adding scripts to chrome default pages
-            // if (tab.url.startsWith('chrome://') || tab.url.startsWith('chrome-extension://')) {
-            //     console.warn("Restricted page. Skipping script injection.");
-            //     return;
-            // }
+            if (tab.url.startsWith('chrome://') || tab.url.startsWith('chrome-extension://')) {
+                console.warn("Restricted page. Skipping script injection.");
+                return;
+            }
 
             chrome.scripting.executeScript({
                 target: { tabId: tab.id, allFrames: true },
@@ -21,7 +27,7 @@ chrome.runtime.onMessage.addListener((message) => {
 
 
 function extractData() {
-    const patientId = document.getElementsByName("PATIENTID")[0].value || 'Not found';
+    const patientId = document.getElementsByName("PATIENTID")?.[0]?.value || 'Not found';
     const firstName = document.querySelector('#FIRSTNAME')?.value || 'Not found';
     const lastName = document.querySelector('#LASTNAME')?.value || 'Not found';
     const dob = document.querySelector('#dob')?.value || 'Not found';
