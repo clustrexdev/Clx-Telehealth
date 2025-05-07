@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <title>Athena Sidepanel</title>
         <link rel="stylesheet" href="styles.css">
         <script src="opentok.min.js"></script>
     </head>
@@ -17,8 +16,9 @@
                     <div><label>First Name : </label><span id="firstName">-</span></div>
                     <div><label>Last Name : </label><span id="lastName">-</span></div>
                 </div>
+                <div id="NoPatientDetails" class="flex flex-row" style="display: none">Please open the patient chart and then click the below button</div>
                 <div class="flex flex-row">
-                    <button id="recordPatientDataButton">Record Patient Data</button>
+                    <button id="recordPatientDataButton" style="display: none">Fetch Patient</button>
                 </div>
             </div>
 

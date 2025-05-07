@@ -72,3 +72,8 @@
     padding: 10px;
     color: #ccc;
 }
+
+.disabled {
+    pointer-events: none;
+    opacity: 0.5; /* To make it look like disabled */
+}
