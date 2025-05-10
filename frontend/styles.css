@@ -1,3 +1,37 @@
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: #f4f4f4;
+    padding: 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.email-container {
+    flex: 1;
+    text-align: center;
+    font-size: 1rem;
+    color: #333;
+}
+
+.logout-button-div {
+    flex-basis: 10%;
+    text-align: right;
+}
+
+#logout {
+    padding: 8px 16px;
+    background-color: #ff4d4d;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+#logout:hover {
+    background-color: #e60000;
+}
 
 .flex{
     display: flex;

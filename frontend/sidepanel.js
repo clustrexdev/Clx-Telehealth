@@ -4,6 +4,7 @@ const appBaseURL = "http://localhost:3000";
 const practiceId = 1959225;
 const apt_id = 3504656; // Kept static appointment ID.
 var patientId;
+var email = "";
 
 let apiKey, sessionId, token, session, publisher, inviteLink;
 
@@ -17,6 +18,35 @@ callBtn.classList.add("disabled");
 
 callBtn.addEventListener('click', startCall);
 endBtn.addEventListener('click', endCall);
+
+
+// Logout Button
+document.getElementById("logout").addEventListener("click", () => {
+    logout();
+});
+
+
+// Fetch the email from extension's local storage.
+chrome.storage.local.get("profile", function(result) {
+    email = result.profile.email;
+    document.getElementById("email").textContent = email;
+    console.log("User email:", result.profile.email);
+});
+
+
+// Logout function
+function logout(){
+    chrome.identity.getAuthToken({ interactive: false }, function(token) {
+        if (chrome.runtime.lastError || !token) return;
+    
+        chrome.identity.removeCachedAuthToken({ token: token }, function() {
+            fetch('https://accounts.google.com/o/oauth2/revoke?token=' + token)
+            .then(() => {
+                window.location.href = chrome.runtime.getURL("auth.html");
+            });
+        });
+    });
+}
 
 
 // On clicking the recordPatientDataButton it sends a request to background.js file to scrape the data.

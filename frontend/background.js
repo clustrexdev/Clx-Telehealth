@@ -8,10 +8,10 @@ chrome.action.onClicked.addListener((tab) =>{
         chrome.sidePanel.open({ tabId : tab.id }, () => {
             console.log("Side Panel Opened");
         });
-        chrome.scripting.executeScript({
-            target: { tabId: tab.id, allFrames: true },
-            func: extractData
-        });
+        // chrome.scripting.executeScript({
+        //     target: { tabId: tab.id, allFrames: true },
+        //     func: extractData
+        // });
     }
 });
 
@@ -27,7 +27,7 @@ function handleTabChange(tabId) {
     chrome.tabs.get(tabId, async (tab) => {
         await chrome.sidePanel.setOptions({
             tabId,
-            path: 'sidepanel.html',
+            path: 'auth.html',
             enabled: validateURL(tab.url)
         });
     });
