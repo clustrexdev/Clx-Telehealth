@@ -1,7 +1,11 @@
 console.log("Sidepanel script is loaded")   // For verifying the sidepanel.js is loaded successfully.
 
-const appBaseURL = "http://localhost:3000";
+// const appBaseURL = "http://localhost:3000";
+const appBaseURL = "https://wpgstw5c32.execute-api.us-east-1.amazonaws.com/dev";
 const practiceId = 1959225;
+const headers = {
+    "authorizationToken": "allow"
+}
 const apt_id = 3504656; // Kept static appointment ID.
 var patientId;
 var email = "";
@@ -84,7 +88,7 @@ chrome.runtime.onMessage.addListener((message) => {
 
 
 async function fetchSessionDetails() {
-    const res = await fetch(`${appBaseURL}/session`);
+    const res = await fetch(`${appBaseURL}/session`, {method: 'GET', headers: headers});
     if (!res.ok) throw new Error('Failed to fetch session');
     return res.json();
 }
@@ -104,8 +108,8 @@ function copyInviteLink(){
 
 
 async function startCall() {
-    if(isValidPatientId(patientId) && await checkin_requirements(apt_id)){
-    // if(true){
+    // if(isValidPatientId(patientId) && await checkin_requirements(apt_id)){
+    if(isValidPatientId(patientId)){
         try {
             const data = await fetchSessionDetails();
             apiKey = data.apiKey;
@@ -127,6 +131,7 @@ async function startCall() {
                     { insertMode: 'append', width: '100%' }
                 );
                 document.getElementById('waiting-msg').style.display = 'none';
+                document.getElementById("patient-role").style.display = "block";
             });
 
             session.connect(token, err => {
@@ -149,7 +154,7 @@ async function startCall() {
         
                     try {
                       const recordingResponse = await fetch(`${appBaseURL}/start-recording/${sessionId}`, {
-                        method: 'POST'
+                        method: 'POST', headers: headers
                       });
                       
                       const recordingData = await recordingResponse.json();
@@ -163,7 +168,8 @@ async function startCall() {
                     } catch (recordErr) {
                       console.error('Error starting recording:', recordErr);
                     }
-                  });
+                });
+                document.getElementById("provider-role").style.display = "block";
             });
 
             showScreen('call-screen');
@@ -179,7 +185,7 @@ async function endCall() {
     try{
         if (sessionId) {
             const response = await fetch(`${appBaseURL}/end-session/${sessionId}`, {
-              method: 'POST'
+              method: 'POST', headers: headers
             });
             
             const data = await response.json();
@@ -206,19 +212,25 @@ async function endCall() {
         showScreen('start-screen');
     
         // Check-in after the call is ended. We will get the encounter id after this step.
-        await checkin_appointment(apt_id);
+        // await checkin_appointment(apt_id);
     
         // Get Encounter ID.
         const [encounterId, departmentId] = await get_encounter_details(apt_id);
     
         // Upload document against the encounter ID.
         if (encounterId != null){
-            const formData = await get_pdf();
-            formData.append("departmentid", departmentId);
-            formData.append("encounterid", encounterId);
-            
-            const result = await add_encounter_document(formData);
-            console.log(result);
+            var formData = await get_pdf();
+            if (formData.status == "Success"){
+                formData = formData.file;
+                formData.append("departmentid", departmentId);
+                formData.append("encounterid", encounterId);
+                
+                const result = await add_encounter_document(formData);
+                console.log(result);
+            }
+            else {
+                console.log("No document is generated to upload!");
+            }
         }
     } catch (error) {
         console.error('Error ending call:', error);
@@ -229,7 +241,7 @@ async function endCall() {
 
 
 async function checkin_requirements(apptid){
-    const result = await fetch(`${appBaseURL}/${practiceId}/appointments/${apptid}/checkin`)
+    const result = await fetch(`${appBaseURL}/${practiceId}/appointments/${apptid}/checkin`, {method: 'GET', headers: headers})
     .then(res => {
         if(!res.ok){
             return res.json().then(res=>{throw new Error(res.error)});
@@ -246,7 +258,7 @@ async function checkin_requirements(apptid){
 
 
 async function checkin_appointment(apptid){
-    fetch(`${appBaseURL}/${practiceId}/appointments/${apptid}/checkin`, {method: 'POST'})
+    fetch(`${appBaseURL}/${practiceId}/appointments/${apptid}/checkin`, {method: 'POST', headers: headers})
     console.log("Appointment Checked In!");
 }
 
@@ -261,7 +273,7 @@ async function get_encounter_details(apptid){
     // So here we are retrying 6 times with 3 secs gap.
     for (let attempt = 1; attempt <= 6; attempt++) {
         try{
-            const response = await fetch(`${appBaseURL}/${practiceId}/appointments/${apptid}`);
+            const response = await fetch(`${appBaseURL}/${practiceId}/appointments/${apptid}`, {method: 'GET', headers: headers});
             const data = await response.json();
             let encounterId = null;
             if (data != null && data.length){
@@ -283,17 +295,26 @@ async function get_encounter_details(apptid){
 
 
 async function get_pdf(){
-    const res = await fetch(`${appBaseURL}/get-pdf`);
-    const blob = await res.blob();
-    const formData = new FormData();
-    formData.append('attachmentcontents', blob, 'source.pdf');
-    console.log("File Generated Successfully!");
-    return formData;
+    try{
+        const res = await fetch(`${appBaseURL}/get-pdf`, {method: 'GET', headers: headers});
+        if (!res.ok) {
+            return res.json().then(res => {throw new Error(res.error)})
+        }
+        const blob = await res.blob();
+        const formData = new FormData();
+        formData.append('attachmentcontents', blob, 'source.pdf');
+        console.log("File Generated Successfully!");
+        return {status: "Success", file: formData};
+    }
+    catch (error_msg) {
+        console.error("get_pdf()", error_msg);
+        return {status: "Failed", error: error_msg};
+    }
 }
 
 
 async function add_encounter_document(formData){
-    const result = await fetch(`${appBaseURL}/${practiceId}/${patientId}/encounterdocument`, {method: 'POST', body: formData})
+    const result = await fetch(`${appBaseURL}/${practiceId}/${patientId}/encounterdocument`, {method: 'POST', headers: headers, body: formData})
     .then(res => {
         if(!res.ok){
             return res.json().then(res=>{throw new Error(res.error)});
@@ -318,7 +339,7 @@ async function add_encounter_document(formData){
 
 // async function get_patient_details(){
 //     try{
-//         const response = await fetch(`${appBaseURL}/${practiceId}/patients/${patientId}`);
+//         const response = await fetch(`${appBaseURL}/${practiceId}/patients/${patientId}`, {method: 'GET', headers: headers});
 //         if (!response.ok) throw new Error('Failed to fetch departmentId');
 //         const data = await response.json();
 //         return data[0];
