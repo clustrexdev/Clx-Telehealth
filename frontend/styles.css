@@ -112,7 +112,7 @@
     opacity: 0.5; /* To make it look like disabled */
 }
 
-.recording-indicator {
+/* .recording-indicator {
     position: absolute;
     top: 10px;
     right: 10px;
@@ -121,7 +121,7 @@
     padding: 5px 10px;
     border-radius: 4px;
     font-size: 12px;
-}
+} */
 
 .role-label {
     display: none;

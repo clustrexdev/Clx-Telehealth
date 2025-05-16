@@ -152,28 +152,28 @@ async function startCall() {
                       return;
                     }
         
-                    try {
-                      const recordingResponse = await fetch(`${appBaseURL}/start-recording/${sessionId}`, {
-                        method: 'POST', headers: headers
-                      });
+                    // try {
+                    //   const recordingResponse = await fetch(`${appBaseURL}/start-recording/${sessionId}`, {
+                    //     method: 'POST', headers: headers
+                    //   });
                       
-                      const recordingData = await recordingResponse.json();
+                    //   const recordingData = await recordingResponse.json();
                       
-                      if (!recordingResponse.ok) {
-                        console.error('Failed to start recording:', recordingData.error);
-                      } else {
-                        console.log('Recording started:', recordingData);
-                        document.querySelector('.recording-indicator').style.display = 'block';
-                      }
-                    } catch (recordErr) {
-                      console.error('Error starting recording:', recordErr);
-                    }
+                    //   if (!recordingResponse.ok) {
+                    //     console.error('Failed to start recording:', recordingData.error);
+                    //   } else {
+                    //     console.log('Recording started:', recordingData);
+                    //     document.querySelector('.recording-indicator').style.display = 'block';
+                    //   }
+                    // } catch (recordErr) {
+                    //   console.error('Error starting recording:', recordErr);
+                    // }
                 });
                 document.getElementById("provider-role").style.display = "block";
             });
 
             showScreen('call-screen');
-            document.querySelector('.recording-indicator').style.display = 'none';
+            // document.querySelector('.recording-indicator').style.display = 'none';
         } catch (e) {
             alert(e.message);
         }
@@ -219,7 +219,9 @@ async function endCall() {
     
         // Upload document against the encounter ID.
         if (encounterId != null){
-            var formData = await get_pdf();
+            document.getElementById("upload-warning").style.display = "block";
+            await sleep(200000);
+            var formData = await waitForPdf(sessionId);
             if (formData.status == "Success"){
                 formData = formData.file;
                 formData.append("departmentid", departmentId);
@@ -227,6 +229,7 @@ async function endCall() {
                 
                 const result = await add_encounter_document(formData);
                 console.log(result);
+                document.getElementById("upload-warning").style.display = "none";
             }
             else {
                 console.log("No document is generated to upload!");
@@ -294,9 +297,31 @@ async function get_encounter_details(apptid){
 }
 
 
-async function get_pdf(){
+async function waitForPdf(sessionId, maxRetries = 10, delayMs = 10000) {
+    let attempt = 0;
+
+    while (attempt < maxRetries) {
+        console.log(`Attempt ${attempt + 1} to fetch PDF...`);
+
+        const result = await get_pdf(sessionId);
+        if (result.status === "Success") return result;
+        if (result.status === "Failed") return result;
+
+        console.log("PDF not ready yet, retrying...");
+        await new Promise(resolve => setTimeout(resolve, delayMs));
+        attempt++;
+    }
+
+    return { status: "Failed", error: "PDF generation timeout after retries" };
+}
+
+
+async function get_pdf(sessionId){
     try{
-        const res = await fetch(`${appBaseURL}/get-pdf`, {method: 'GET', headers: headers});
+        const res = await fetch(`${appBaseURL}/get-pdf/${sessionId}`, {method: 'GET', headers: headers});
+        if (res.status === 404) {
+            return {status: "Pending"};  // Not ready yet
+        }
         if (!res.ok) {
             return res.json().then(res => {throw new Error(res.error)})
         }
