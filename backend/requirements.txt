@@ -1,0 +1,12 @@
+Flask
+flask-cors
+numpy
+requests
+pydub
+boto3
+serverless-wsgi
+openai==0.28
+python-dotenv
+vonage
+pyjwt
+weasyprint

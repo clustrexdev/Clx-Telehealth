@@ -220,7 +220,7 @@ async function endCall() {
         // Upload document against the encounter ID.
         if (encounterId != null){
             document.getElementById("upload-warning").style.display = "block";
-            await sleep(200000);
+            await sleep(180000);
             var formData = await waitForPdf(sessionId);
             if (formData.status == "Success"){
                 formData = formData.file;
@@ -297,7 +297,7 @@ async function get_encounter_details(apptid){
 }
 
 
-async function waitForPdf(sessionId, maxRetries = 10, delayMs = 10000) {
+async function waitForPdf(sessionId, maxRetries = 10, delayMs = 12000) {
     let attempt = 0;
 
     while (attempt < maxRetries) {
