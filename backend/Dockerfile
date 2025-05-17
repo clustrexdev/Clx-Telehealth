@@ -1,40 +1,33 @@
-FROM public.ecr.aws/lambda/python:3.10
+FROM python:3.11-slim
 
-# Install required system dependencies for WeasyPrint (pango, cairo, etc.)
-RUN yum install -y \
-    cairo \
-    cairo-devel \
-    pango \
-    pango-devel \
-    gdk-pixbuf2 \
-    gdk-pixbuf2-devel \
-    libffi \
-    libffi-devel \
+# Install required system dependencies for WeasyPrint
+RUN apt-get update && apt-get install -y \
+    libcairo2 \
+    libpango-1.0-0 \
+    libpangocairo-1.0-0 \
+    libgdk-pixbuf2.0-0 \
+    libffi-dev \
     libxml2 \
-    libxslt \
-    && yum clean all
+    libxslt1.1 \
+    ffmpeg \
+    curl \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Create directory for ffmpeg
-RUN mkdir -p /opt/bin
+# Install AWS Lambda Runtime Interface Client
+RUN pip install --no-cache-dir awslambdaric
 
-# Download and install static ffmpeg
-RUN yum update -y && \
-    yum install -y wget tar xz && \
-    wget https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz && \
-    tar -xf ffmpeg-release-amd64-static.tar.xz && \
-    cp ffmpeg-*-static/ffmpeg /opt/bin/ && \
-    cp ffmpeg-*-static/ffprobe /opt/bin/ && \
-    chmod +x /opt/bin/ffmpeg /opt/bin/ffprobe && \
-    rm -rf ffmpeg-release-amd64-static.tar.xz ffmpeg-*-static && \
-    yum remove -y wget && yum clean all
+# Set Fontconfig cache path
+ENV XDG_CACHE_HOME=/tmp
 
-# Set environment so subprocess finds ffmpeg
-ENV PATH="/opt/bin:${PATH}"
-
-# Copy function code and requirements
+# Copy and install Python dependencies
 COPY requirements.txt .
-RUN pip install -r requirements.txt
-COPY . ${LAMBDA_TASK_ROOT}
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Set the CMD to your handler
-CMD [ "modul.handler" ]
+# Copy your code
+COPY . .
+
+
+# Set handler and entrypoint for Lambda
+CMD ["modul.handler"]
+ENTRYPOINT ["/usr/local/bin/python3", "-m", "awslambdaric"]
+

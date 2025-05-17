@@ -232,10 +232,7 @@ def send_session_email(session_url):
 
 def soap_to_pdf(soap_notes, session_id):
     try:
-        folder_path = os.path.join(os.path.dirname(__file__), 'files')
-        os.makedirs(folder_path, exist_ok=True)
-
-        doc_path =  os.path.join(os.path.dirname(__file__), 'files', f'{session_id}.pdf')
+        doc_path = f"/tmp/{session_id}.pdf"
 
         soap_notes = soap_notes.get("response")
         
@@ -260,6 +257,7 @@ def soap_to_pdf(soap_notes, session_id):
 
             # Save PDF
             HTML(string=text_content).write_pdf(doc_path)
+            print("PDF generated successfully")
 
     except Exception as e:
         print(f"Error generating SOAP document: {str(e)}") 

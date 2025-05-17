@@ -52,7 +52,7 @@ def register_routes(app):
         try:
             del active_sessions[session_id]
 
-            Thread(target=poll_for_matching_archive, args=(session_id,)).start()
+            # Thread(target=poll_for_matching_archive, args=(session_id,)).start()
 
             return jsonify({
                 "message": f"Session {session_id} ended. Archive fetching triggered."
@@ -71,4 +71,17 @@ def register_routes(app):
             abort(400, description="Missing required query parameters: session and token")
         
         return render_template("subscriber.html")
+    
+    
+    @app.route("/generate-soap-document/<session_id>")
+    def generate_soap_document(session_id):
+        try:
+            archive = poll_for_matching_archive(session_id)
+            if archive is not None:
+                return jsonify({"error": "No archive found"}), 200
+            else:
+                return jsonify({"error": "No archive found"}), 404
+        except Exception as e:
+            print(f"Error in generate_soap_document(): {str(e)}")
+            return jsonify({"error": str(e)}), 500
 

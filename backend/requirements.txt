@@ -9,4 +9,6 @@ openai==0.28
 python-dotenv
 vonage
 pyjwt
-weasyprint
+weasyprint==61.2
+# This order should not be changed. After installing weasyprint install pydyf to import the necessary library.
+pydyf==0.9.0

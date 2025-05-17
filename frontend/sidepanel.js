@@ -109,6 +109,7 @@ function copyInviteLink(){
 
 async function startCall() {
     // if(isValidPatientId(patientId) && await checkin_requirements(apt_id)){
+    document.getElementById("upload-warning").style.display = "none";
     if(isValidPatientId(patientId)){
         try {
             const data = await fetchSessionDetails();
@@ -220,19 +221,30 @@ async function endCall() {
         // Upload document against the encounter ID.
         if (encounterId != null){
             document.getElementById("upload-warning").style.display = "block";
-            await sleep(180000);
-            var formData = await waitForPdf(sessionId);
-            if (formData.status == "Success"){
-                formData = formData.file;
-                formData.append("departmentid", departmentId);
-                formData.append("encounterid", encounterId);
-                
-                const result = await add_encounter_document(formData);
-                console.log(result);
-                document.getElementById("upload-warning").style.display = "none";
+            const soap_response = await generate_soap_document(sessionId);
+            
+            if (soap_response.status != "Failed") {
+                if (soap_response.status == "Started") {
+                    await sleep(120000);
+                }
+                var formData = await waitForPdf(sessionId);
+                if (formData.status == "Success"){
+                    formData = formData.file;
+                    formData.append("departmentid", departmentId);
+                    formData.append("encounterid", encounterId);
+                    
+                    const result = await add_encounter_document(formData);
+                    console.log(result);
+                    document.getElementById("upload-warning").textContent = "PDF uploaded successfully!";
+                }
+                else {
+                    console.log("No document is found to upload!");
+                    document.getElementById("upload-warning").textContent = "PDF not found!";
+                }
             }
             else {
                 console.log("No document is generated to upload!");
+                document.getElementById("upload-warning").textContent = "SOAP generation is failed!";
             }
         }
     } catch (error) {
@@ -297,7 +309,7 @@ async function get_encounter_details(apptid){
 }
 
 
-async function waitForPdf(sessionId, maxRetries = 10, delayMs = 12000) {
+async function waitForPdf(sessionId, maxRetries = 10, delayMs = 15000) {
     let attempt = 0;
 
     while (attempt < maxRetries) {
@@ -316,26 +328,64 @@ async function waitForPdf(sessionId, maxRetries = 10, delayMs = 12000) {
 }
 
 
-async function get_pdf(sessionId){
+async function generate_soap_document(sessionId){
     try{
-        const res = await fetch(`${appBaseURL}/get-pdf/${sessionId}`, {method: 'GET', headers: headers});
-        if (res.status === 404) {
-            return {status: "Pending"};  // Not ready yet
-        }
+        const res = await fetch(`${appBaseURL}/generate-soap-document/${sessionId}`, {method: 'GET', headers: headers});
+        if (res.status === 504) return {status: "Started"};
+        if (res.status === 200) return {status: "Success"};
         if (!res.ok) {
             return res.json().then(res => {throw new Error(res.error)})
         }
-        const blob = await res.blob();
-        const formData = new FormData();
-        formData.append('attachmentcontents', blob, 'source.pdf');
-        console.log("File Generated Successfully!");
-        return {status: "Success", file: formData};
     }
     catch (error_msg) {
-        console.error("get_pdf()", error_msg);
+        console.error("generate_soap_document()", error_msg);
         return {status: "Failed", error: error_msg};
     }
 }
+
+
+async function get_pdf(sessionId) {
+    try {
+        const res = await fetch(`${appBaseURL}/get-pdf/${sessionId}`, {method: 'GET', headers: headers});
+
+        if (res.status === 404) {
+            return { status: "Pending" };  // Not ready yet
+        }
+
+        if (!res.ok) {
+            const err = await res.json();
+            throw new Error(err.error);
+        }
+
+        // Parse JSON response which contains base64 PDF in body
+        const data = await res.json();
+
+        // Decode base64 string to Uint8Array
+        const base64 = data.body;
+        const binaryString = atob(base64);
+        const len = binaryString.length;
+        const bytes = new Uint8Array(len);
+        for (let i = 0; i < len; i++) {
+            bytes[i] = binaryString.charCodeAt(i);
+        }
+
+        // Create Blob from Uint8Array with PDF mime type
+        const blob = new Blob([bytes], { type: 'application/pdf' });
+
+        // Append blob to FormData
+        const formData = new FormData();
+        // formData.append('attachmentcontents', blob, 'source.pdf');
+        const file = new File([bytes], 'source.pdf', { type: 'application/pdf', lastModified: Date.now() });
+        formData.append('attachmentcontents', file);
+
+        console.log("File Generated Successfully!");
+        return { status: "Success", file: formData };
+    } catch (error_msg) {
+        console.error("get_pdf()", error_msg);
+        return { status: "Failed", error: error_msg };
+    }
+}
+
 
 
 async function add_encounter_document(formData){
@@ -371,5 +421,26 @@ async function add_encounter_document(formData){
 //     }
 //     catch (err) {
 //         console.error('API call failed:', err);
+//     }
+// }
+
+// async function get_pdf_old(sessionId){
+//     try{
+//         const res = await fetch(`${appBaseURL}/get-pdf/${sessionId}`, {method: 'GET', headers: headers});
+//         if (res.status === 404) {
+//             return {status: "Pending"};  // Not ready yet
+//         }
+//         if (!res.ok) {
+//             return res.json().then(res => {throw new Error(res.error)})
+//         }
+//         const blob = await res.blob();
+//         const formData = new FormData();
+//         formData.append('attachmentcontents', blob, 'source.pdf');
+//         console.log("File Generated Successfully!");
+//         return {status: "Success", file: formData};
+//     }
+//     catch (error_msg) {
+//         console.error("get_pdf()", error_msg);
+//         return {status: "Failed", error: error_msg};
 //     }
 // }

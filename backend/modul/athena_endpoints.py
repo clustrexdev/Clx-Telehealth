@@ -1,8 +1,9 @@
 import os
 import json
+import base64
 import requests
+from flask import request, jsonify
 from modul.const import ATHENA_BASE_URL
-from flask import request, jsonify, send_file
 from modul.functions import validate_checkin_fields
 from modul.utils import get_request, post_request, get_headers
 
@@ -77,10 +78,24 @@ def register_athena_routes(app):
         pdf_path = None
         success = False
         try:
-            pdf_path = os.path.join(os.path.dirname(__file__), 'files', f'{session_id}.pdf')
+            pdf_path = f"/tmp/{session_id}.pdf"
             if os.path.exists(pdf_path):
                 success = True
-                return send_file(pdf_path, mimetype='application/pdf'), 200
+                pdf_data = None
+                with open(pdf_path, "rb") as f:
+                    pdf_data = f.read()
+                if pdf_data is not None:
+                    encoded = base64.b64encode(pdf_data).decode("utf-8")
+                    return {
+                        "statusCode": 200,
+                        "headers": {
+                            "Content-Type": "application/pdf",
+                            "Content-Disposition": "inline; filename=output.pdf"
+                        },
+                        "isBase64Encoded": True,
+                        "body": encoded
+                    }
+                # return send_file(pdf_path, mimetype='application/pdf'), 200
             return jsonify({"error": "No file found"}), 404
         except Exception as e:
             print(str(e), flush=True)
